@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080b14">
+<title>StudySpace | Study Manager</title>
+
+<style>
+:root {
+  --bg:#080b14;
+  --card:#111827;
+  --line:#26334a;
+  --text:#eef3ff;
+  --muted:#93a2bd;
+  --purple:#9885ff;
+  --cyan:#39dce9;
+  --green:#42dfb0;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:radial-gradient(circle at top left,#24204b,transparent 40%),var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
+  outline:2px solid var(--cyan);
+}
+.app{display:flex;min-height:100vh}
+.sidebar{
+  width:225px;padding:25px 16px;
+  background:#090e19;border-right:1px solid var(--line);
+  position:fixed;inset:0 auto 0 0;
+}
+.brand{font-size:22px;font-weight:800;margin:0 8px 35px}
+.brand span{color:var(--purple)}
+.nav{display:grid;gap:8px}
+.nav button{
+  padding:13px;border:0;border-radius:12px;
+  background:transparent;color:var(--muted);text-align:left;
+}
+.nav button.active,.nav button:hover{
+  background:#9885ff20;color:white;
+}
+.main{margin-left:225px;padding:28px;width:calc(100% - 225px);max-width:1500px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;gap:12px}
+h1{font-size:30px;letter-spacing:-1px;margin:4px 0}
+h2{font-size:23px;margin:0 0 8px}
+h3{font-size:15px;margin:0}
+p{color:var(--muted)}
+.eyebrow{color:var(--cyan);font-size:11px;letter-spacing:2px}
+.grid{display:grid;gap:16px}
+.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin:20px 0}
+.card{
+  background:linear-gradient(145deg,#151d2e,#0e1523);
+  border:1px solid #ffffff12;border-radius:20px;
+  padding:20px;box-shadow:0 15px 35px #0003;
+  min-width:0;
+}
+.stat-label{color:var(--muted);font-size:12px}
+.stat-value{font-size:28px;font-weight:800;margin:8px 0}
+.columns{grid-template-columns:1.3fr 1fr}
+.view{display:none;animation:appear .2s ease}
+.view.active{display:block}
+@keyframes appear{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.btn{
+  border:0;border-radius:12px;padding:11px 15px;
+  background:linear-gradient(110deg,var(--purple),var(--cyan));
+  color:#090e19;font-weight:750;
+}
+.secondary{
+  background:#192337;border:1px solid var(--line);
+  color:var(--text);border-radius:11px;padding:10px 13px;
+}
+.field{
+  width:100%;padding:12px;border:1px solid var(--line);
+  border-radius:11px;background:#0b1220;color:var(--text);
+  margin:5px 0 13px;
+}
+.field::placeholder{color:#75839d}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+.toolbar .field{flex:1;min-width:140px}
+.task-list{display:grid;gap:10px}
+.task{
+  display:flex;align-items:center;gap:10px;padding:12px;
+  background:#ffffff05;border:1px solid #ffffff10;border-radius:12px;
+}
+.task input[type=checkbox]{accent-color:var(--purple);width:18px;height:18px}
+.task-body{flex:1;min-width:0;overflow-wrap:anywhere}
+.task.done .task-title{text-decoration:line-through;color:var(--muted)}
+.task-title{font-size:13px;font-weight:650}
+.meta{font-size:11px;color:var(--muted);margin-top:4px}
+.tag{font-size:10px;color:var(--cyan);background:#39dce91b;padding:5px 8px;border-radius:8px}
+.progress{height:6px;background:#29344b;border-radius:20px;overflow:hidden;margin-top:9px}
+.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--purple),var(--cyan))}
+.subject{margin:16px 0}
+.subject-head{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.timer-card{text-align:center;background:radial-gradient(circle at top,#4b3c9b55,transparent 65%),#101827}
+.timer-ring{
+  width:175px;height:175px;border-radius:50%;margin:25px auto;
+  display:grid;place-items:center;
+  background:conic-gradient(var(--cyan) 0deg,var(--purple) 0deg,#26334a 0deg);
+  position:relative;
+}
+.timer-ring:before{content:"";position:absolute;inset:9px;border-radius:50%;background:#101827}
+.timer-inner{z-index:1}
+.timer-number{font-size:37px;font-weight:800}
+.muted{color:var(--muted);font-size:12px}
+.notes-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.note{background:#111b2d;border:1px solid #ffffff12;padding:16px;border-radius:15px;overflow-wrap:anywhere}
+.note h3{margin-bottom:8px}
+.note p{white-space:pre-wrap;font-size:13px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{padding:12px 0;border:1px solid #ffffff10;border-radius:9px;text-align:center;background:#ffffff05;color:white}
+.day.today{background:#9885ff40;border-color:var(--purple)}
+.day.has-task{box-shadow:inset 0 -3px var(--cyan)}
+.chart{height:160px;display:flex;align-items:end;gap:12px;padding-top:20px}
+.bar-wrap{flex:1;height:100%;display:flex;align-items:center;justify-content:end;flex-direction:column;gap:7px}
+.bar{width:65%;max-width:32px;border-radius:6px 6px 2px 2px;background:linear-gradient(var(--cyan),var(--purple));min-height:3px}
+.bar-label,.bar-value{font-size:10px;color:var(--muted)}
+.empty{padding:22px;text-align:center;color:var(--muted);font-size:13px}
+.toast{
+  position:fixed;bottom:25px;left:50%;transform:translateX(-50%);
+  background:#e8e4ff;color:#111426;padding:12px 18px;border-radius:12px;
+  display:none;z-index:20;box-shadow:0 8px 30px #0008;
+}
+.toast.show{display:block}
+.bottom-nav{display:none}
+.modal{
+  display:none;position:fixed;inset:0;background:#000b;
+  z-index:10;align-items:center;justify-content:center;padding:18px;
+}
+.modal.open{display:flex}
+.modal-box{background:#111a2b;border:1px solid var(--line);padding:22px;border-radius:20px;width:min(460px,100%);max-height:90vh;overflow:auto}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+@media(max-width:950px){
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .notes-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .columns{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+  .sidebar{display:none}
+  .main{margin:0;width:100%;padding:18px 13px 95px}
+  h1{font-size:25px}
+  .card{padding:16px}
+  .notes-grid{grid-template-columns:1fr 1fr}
+  .bottom-nav{
+    display:flex;position:fixed;bottom:0;left:0;right:0;
+    justify-content:space-around;background:#0b1120ee;
+    backdrop-filter:blur(18px);border-top:1px solid var(--line);
+    padding:8px 3px calc(8px + env(safe-area-inset-bottom));z-index:5;
+  }
+  .bottom-nav button{background:none;border:0;color:var(--muted);font-size:10px;padding:7px 3px}
+  .bottom-nav button.active{color:var(--purple)}
+  .bottom-nav span{display:block;font-size:18px;margin-bottom:3px}
+  .task .tag{display:none}
+}
+@media(max-width:380px){.notes-grid{grid-template-columns:1fr}.stats{gap:9px}.stat-value{font-size:23px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">✦ Study<span>Space</span></div>
+  <nav class="nav">
+    <button class="active" data-view="home">⌂ &nbsp; Overview</button>
+    <button data-view="tasks">☑ &nbsp; My tasks</button>
+    <button data-view="subjects">▤ &nbsp; Subjects</button>
+    <button data-view="timer">◷ &nbsp; Focus timer</button>
+    <button data-view="calendar">▦ &nbsp; Calendar</button>
+    <button data-view="notes">✎ &nbsp; Notes</button>
+    <button data-view="analytics">⌁ &nbsp; Analytics</button>
+    <button data-view="settings">⚙ &nbsp; Settings</button>
+  </nav>
+</aside>
+
+<main class="main">
+<header>
+  <div>
+    <div class="eyebrow">YOUR PERSONAL STUDY SPACE</div>
+    <h1 id="pageTitle">Overview</h1>
+  </div>
+  <button class="btn" id="quickAdd">＋ Add task</button>
+</header>
+
+<section class="view active" id="view-home">
+  <h2 id="greeting">Good morning, Scholar ✨</h2>
+  <p id="todayText">Small steps every day lead to big results.</p>
+  <div class="grid stats">
+    <div class="card"><div class="stat-label">Total study time</div><div class="stat-value" id="totalTime">0m</div><div class="muted">Focused minutes</div></div>
+    <div class="card"><div class="stat-label">Tasks completed</div><div class="stat-value" id="totalDone">0</div><div class="muted">Your finished work</div></div>
+    <div class="card"><div class="stat-label">Focus sessions</div><div class="stat-value" id="totalSessions">0</div><div class="muted">Completed sessions</div></div>
+    <div class="card"><div class="stat-label">Study streak</div><div class="stat-value" id="streak">0 days</div><div class="muted">Consistency matters</div></div>
+  </div>
+  <div class="grid columns">
+    <div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <h3>Today's priorities</h3><button class="secondary" data-go="tasks">View all</button>
+        </div>
+        <div class="task-list" id="todayTasks" style="margin-top:16px"></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3>Subject progress</h3><button class="secondary" data-go="subjects">Manage</button>
+        </div>
+        <div id="homeSubjects"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card timer-card">
+        <h3>Focus session</h3>
+        <div class="timer-ring" id="homeRing"><div class="timer-inner"><div class="muted">FOCUS TIME</div><div class="timer-number" id="homeTimer">25:00</div></div></div>
+        <p class="muted">One thing at a time. You've got this.</p>
+        <button class="btn" id="homeStart">▶ Start focus</button>
+        <button class="secondary" id="homeReset">↺ Reset</button>
+      </div>
+      <div class="card">
+        <h3>Weekly focus</h3><div class="chart" id="homeChart"></div>
+      </div>
+      <div class="card">
+        <h3>Daily reminder ✦</h3>
+        <p>“You don't have to be perfect. You just have to begin.”</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="view-tasks">
+  <h2>Your tasks</h2><p>Make a plan. Take it one step at a time.</p>
+  <div class="toolbar">
+    <input class="field" id="taskSearch" placeholder="Search tasks...">
+    <select class="field" id="taskFilter" style="max-width:170px">
+      <option value="all">All tasks</option><option value="pending">Pending</option><option value="done">Completed</option>
+    </select>
+    <button class="btn" id="addTask">＋ New task</button>
+  </div>
+  <div class="card"><div class="task-list" id="allTasks"></div></div>
+</section>
+
+<section class="view" id="view-subjects">
+  <h2>Your subjects</h2><p>Track your progress one subject at a time.</p>
+  <div class="toolbar"><button class="btn" id="addSubject">＋ Add subject</button></div>
+  <div class="grid notes-grid" id="subjectCards"></div>
+</section>
+
+<section class="view" id="view-timer">
+  <h2>Focus timer</h2><p>Protect your attention. Progress follows.</p>
+  <div class="grid columns">
+    <div class="card timer-card">
+      <div class="toolbar" style="justify-content:center">
+        <button class="secondary mode" data-min="25">Focus · 25m</button>
+        <button class="secondary mode" data-min="5">Break · 5m</button>
+        <button class="secondary mode" data-min="15">Long break · 15m</button>
+      </div>
+      <div class="timer-ring" id="bigRing"><div class="timer-inner"><div class="muted" id="timerLabel">READY TO FOCUS</div><div class="timer-number" id="bigTimer">25:00</div></div></div>
+      <button class="btn" id="timerStart">▶ Start</button>
+      <button class="secondary" id="timerReset">↺ Reset</button>
+    </div>
+    <div class="card"><h3>Focus tips</h3><p>• Put your phone on silent.</p><p>• Pick one clear goal before starting.</p><p>• Take a short break between sessions.</p><p class="muted" id="sessionCount"></p></div>
+  </div>
+</section>
+
+<section class="view" id="view-calendar">
+  <h2>Study calendar</h2><p>Plan your deadlines and daily workload.</p>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <button class="secondary" id="prevMonth">←</button><h3 id="monthTitle"></h3><button class="secondary" id="nextMonth">→</button>
+    </div>
+    <div class="calendar" id="calendarGrid"></div>
+  </div>
+  <div class="card"><h3 id="selectedTitle">Selected day</h3><div class="task-list" id="calendarTasks" style="margin-top:15px"></div><button class="btn" id="calendarAdd" style="margin-top:12px">＋ Add task</button></div>
+</section>
+
+<section class="view" id="view-notes">
+  <h2>Your notes</h2><p>Save ideas, formulas, and revision material.</p>
+  <div class="toolbar"><input class="field" id="noteSearch" placeholder="Search notes..."><button class="btn" id="addNote">＋ New note</button></div>
+  <div class="grid notes-grid" id="noteGrid"></div>
+</section>
+
+<section class="view" id="view-analytics">
+  <h2>Your progress</h2><p>Small improvements add up.</p>
+  <div class="grid stats">
+    <div class="card"><div class="stat-label">Focus time</div><div class="stat-value" id="anTime">0m</div></div>
+    <div class="card"><div class="stat-label">Tasks completed</div><div class="stat-value" id="anDone">0</div></div>
+    <div class="card"><div class="stat-label">Completion rate</div><div class="stat-value" id="anRate">0%</div></div>
+    <div class="card"><div class="stat-label">Subjects</div><div class="stat-value" id="anSubjects">0</div></div>
+  </div>
+  <div class="card"><h3>Weekly study time</h3><div class="chart" id="analyticsChart"></div></div>
+  <div class="card"><h3>Last 28 days</h3><p class="muted">Bright tiles show days when you studied.</p><div id="streakGrid" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
+</section>
+
+<section class="view" id="view-settings">
+  <h2>Settings</h2><p>Personalize your study space.</p>
+  <div class="card">
+    <label for="userName">Your name</label><input class="field" id="userName" placeholder="Your name">
+    <label for="goal">Daily focus session goal</label>
+    <select class="field" id="goal"><option value="1">1 session</option><option value="2">2 sessions</option><option value="3">3 sessions</option><option value="4">4 sessions</option><option value="6">6 sessions</option><option value="8">8 sessions</option></select>
+    <button class="btn" id="saveSettings">Save settings</button>
+  </div>
+  <div class="card">
+    <h3>Data & privacy</h3><p>Your data is saved in this browser.</p>
+    <button class="secondary" id="exportData">Export backup</button>
+    <button class="secondary" id="importBtn">Import backup</button>
+    <input type="file" id="importFile" accept=".json,application/json" hidden>
+    <p><button class="secondary" id="resetData">Reset all data</button></p>
+  </div>
+</section>
+</main>
+</div>
+
+<nav class="bottom-nav">
+  <button class="active" data-view="home"><span>⌂</span>Home</button>
+  <button data-view="tasks"><span>☑</span>Tasks</button>
+  <button data-view="timer"><span>◷</span>Focus</button>
+  <button data-view="notes"><span>✎</span>Notes</button>
+  <button data-view="settings"><span>⚙</span>More</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <h2 id="modalTitle">Add item</h2>
+    <div id="modalBody"></div>
+    <div class="modal-actions"><button class="secondary" id="cancelModal">Cancel</button><button class="btn" id="saveModal">Save</button></div>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const KEY = "studyspace_data_v1";
+const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+};
+const offsetDate = n => {
+  const d = new Date(); d.setDate(d.getDate()+n);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+};
+const id = () => Math.random().toString(36).slice(2,10);
+const defaults = () => ({
+  name:"Scholar",goal:3,
+  tasks:[
+    {id:id(),title:"Review lecture notes",subject:"Mathematics",due:today(),priority:"High",done:false},
+    {id:id(),title:"Practice questions",subject:"Physics",due:today(),priority:"Medium",done:false},
+    {id:id(),title:"Read one chapter",subject:"English",due:offsetDate(1),priority:"Low",done:false}
+  ],
+  subjects:[
+    {id:id(),name:"Mathematics",icon:"∑",color:"#a092ff",progress:65},
+    {id:id(),name:"Physics",icon:"⚛",color:"#39dce9",progress:42},
+    {id:id(),name:"English",icon:"✎",color:"#ff80c8",progress:78}
+  ],
+  notes:[],sessions:[]
+});
+let data;
+try { data=JSON.parse(localStorage.getItem(KEY)) || defaults(); }
+catch(e) { data=defaults(); }
+
+let currentView="home", selectedDate=today();
+let month=new Date(), duration=1500, remaining=1500, running=false, interval=null, mode="focus", saveAction=null;
+
+const safe = s => String(s ?? "").replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+const pretty = d => d ? new Date(d+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"}) : "No date";
+const minutes = s => {
+  const n=Math.round((s||0)/60);
+  return n>=60 ? `${Math.floor(n/60)}h ${n%60}m` : `${n}m`;
+};
+const totalSeconds = () => data.sessions.reduce((a,s)=>a+(s.seconds||0),0);
+const doneCount = () => data.tasks.filter(t=>t.done).length;
+const focusSessionsToday = () => data.sessions.filter(s=>s.date===today()&&s.mode==="focus"&&s.completed).length;
+function streakCount(){
+  let n=0;
+  for(let i=0;i<365;i++){
+    const studied=data.sessions.some(s=>s.date===offsetDate(-i)&&s.mode==="focus"&&s.seconds>0);
+    if(studied)n++;
+    else if(i===0)continue;
+    else break;
+  }
+  return n;
+}
+function toast(message){
+  const el=$("#toast");el.textContent=message;el.classList.add("show");
+  clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("show"),2300);
+}
+function persist(){localStorage.setItem(KEY,JSON.stringify(data));renderAll()}
+const titles={home:"Overview",tasks:"My tasks",subjects:"Subjects",timer:"Focus timer",calendar:"Calendar",notes:"Notes",analytics:"Analytics",settings:"Settings"};
+function go(v){
+  if(!titles[v])return;currentView=v;
+  $$(".view").forEach(e=>e.classList.toggle("active",e.id==="view-"+v));
+  $$("[data-view]").forEach(e=>e.classList.toggle("active",e.dataset.view===v));
+  $("#pageTitle").textContent=titles[v];
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function taskHTML(t){
+  return `<div class="task ${t.done?"done":""}">
+    <input type="checkbox" data-check="${t.id}" ${t.done?"checked":""} aria-label="Complete task">
+    <div class="task-body"><div class="task-title">${safe(t.title)}</div>
+    <div class="meta">${safe(t.subject||"General")} · ${t.due===today()?"Today":pretty(t.due)}</div></div>
+    <span class="tag">${safe(t.priority||"Medium")}</span>
+    <button class="secondary" data-edit-task="${t.id}" aria-label="Edit task">✎</button>
+  </div>`;
+}
+function renderTasks(){
+  const due=data.tasks.filter(t=>!t.done&&(t.due||today())<=today()).slice(0,4);
+  $("#todayTasks").innerHTML=due.length?due.map(taskHTML).join(""):'<div class="empty">All caught up! Add a task to plan your next win ✨</div>';
+  const q=($("#taskSearch")?.value||"").toLowerCase();
+  const f=$("#taskFilter")?.value||"all";
+  const list=data.tasks.filter(t=>(t.title+" "+t.subject).toLowerCase().includes(q))
+    .filter(t=>f==="all"||(f==="done"?t.done:!t.done))
+    .sort((a,b)=>(a.due||"").localeCompare(b.due||""));
+  $("#allTasks").innerHTML=list.length?list.map(taskHTML).join(""):'<div class="empty">No tasks found. Create one to get started.</div>';
+}
+function renderSubjects(){
+  $("#homeSubjects").innerHTML=data.subjects.slice(0,5).map(s=>`
+    <div class="subject"><div class="subject-head"><span>${safe(s.icon)} &nbsp;${safe(s.name)}</span><span>${s.progress}%</span></div>
+    <div class="progress"><span style="width:${s.progress}%;background:${s.color}"></span></div></div>`).join("") || '<div class="empty">Add your first subject.</div>';
+  $("#subjectCards").innerHTML=data.subjects.map(s=>`
+    <div class="card"><div style="font-size:25px">${safe(s.icon||"📚")}</div><h3 style="margin-top:12px">${safe(s.name)}</h3>
+    <p>Keep building your understanding.</p><div class="subject-head"><span>Progress</span><strong>${s.progress}%</strong></div>
+    <div class="progress"><span style="width:${s.progress}%;background:${s.color}"></span></div>
+    <div class="toolbar"><button class="secondary" data-progress="${s.id}">Update</button><button class="secondary" data-edit-sub="${s.id}">Edit</button><button class="secondary" data-delete-sub="${s.id}">×</button></div></div>`).join("") || '<div class="card empty">No subjects yet.</div>';
+}
+function renderNotes(){
+  const q=($("#noteSearch")?.value||"").toLowerCase();
+  const list=data.notes.filter(n=>(n.title+" "+n.body+" "+n.subject).toLowerCase().includes(q));
+  $("#noteGrid").innerHTML=list.map(n=>`<article class="note"><span class="tag">${safe(n.subject||"General")}</span><h3 style="margin-top:12px">${safe(n.title)}</h3><p>${safe(n.body)}</p><div class="meta">${pretty(n.updated)}</div><div class="toolbar"><button class="secondary" data-edit-note="${n.id}">Edit</button><button class="secondary" data-delete-note="${n.id}">Delete</button></div></article>`).join("") || '<div class="card empty">No notes yet. Save something useful.</div>';
+}
+function weekData(){
+  return Array.from({length:7},(_,i)=>{
+    const date=offsetDate(i-6);
+    return {date,label:new Date(date+"T12:00:00").toLocaleDateString(undefined,{weekday:"short"}),
+      mins:Math.round(data.sessions.filter(s=>s.date===date&&s.mode==="focus").reduce((a,s)=>a+s.seconds,0)/60)};
+  });
+}
+function renderChart(selector){
+  const el=$(selector);if(!el)return;
+  const days=weekData(),max=Math.max(30,...days.map(d=>d.mins));
+  el.innerHTML=days.map(d=>`<div class="bar-wrap"><span class="bar-value">${d.mins?d.mins+"m":"—"}</span><div class="bar" style="height:${Math.max(3,d.mins/max*100)}%"></div><span class="bar-label">${d.label}</span></div>`).join("");
+}
+function renderCalendar(){
+  const y=month.getFullYear(),m=month.getMonth(),first=new Date(y,m,1).getDay(),count=new Date(y,m+1,0).getDate();
+  $("#monthTitle").textContent=month.toLocaleDateString(undefined,{month:"long",year:"numeric"});
+  let html=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(x=>`<div class="day" style="color:#93a2bd">${x}</div>`).join("");
+  for(let i=0;i<first;i++)html+='<div></div>';
+  for(let d=1;d<=count;d++){
+    const date=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const has=data.tasks.some(t=>t.due===date&&!t.done);
+    html+=`<button class="day ${date===today()?"today":""} ${has?"has-task":""}" data-date="${date}">${d}</button>`;
+  }
+  $("#calendarGrid").innerHTML=html;
+  $("#selectedTitle").textContent=new Date(selectedDate+"T12:00:00").toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"});
+  const tasks=data.tasks.filter(t=>t.due===selectedDate);
+  $("#calendarTasks").innerHTML=tasks.map(taskHTML).join("")||'<div class="empty">Nothing planned for this day.</div>';
+}
+function renderAnalytics(){
+  $("#anTime").textContent=minutes(totalSeconds());
+  $("#anDone").textContent=doneCount();
+  $("#anRate").textContent=(data.tasks.length?Math.round(doneCount()/data.tasks.length*100):0)+"%";
+  $("#anSubjects").textContent=data.subjects.length;
+  $("#streakGrid").innerHTML=Array.from({length:28},(_,i)=>{
+    const date=offsetDate(i-27),on=data.sessions.some(s=>s.date===date&&s.mode==="focus"&&s.seconds>0);
+    return `<div title="${date}" style="height:25px;width:25px;border-radius:7px;background:${on?"linear-gradient(135deg,#9885ff,#39dce9)":"#1d2940"}"></div>`;
+  }).join("");
+  renderChart("#analyticsChart");
+}
+function renderAll(){
+  const h=new Date().getHours();
+  $("#greeting").textContent=`${h<12?"Good morning":h<18?"Good afternoon":"Good evening"}, ${data.name||"Scholar"} ✨`;
+  $("#todayText").textContent=new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"})+" · Small steps lead to big results.";
+  $("#totalTime").textContent=minutes(totalSeconds());
+  $("#totalDone").textContent=doneCount();
+  $("#totalSessions").textContent=data.sessions.filter(s=>s.mode==="focus"&&s.completed).length;
+  $("#streak").textContent=streakCount()+" days";
+  $("#sessionCount").textContent=`${focusSessionsToday()} of ${data.goal} daily sessions completed`;
+  $("#userName").value=data.name||"";
+  $("#goal").value=String(data.goal||3);
+  renderTasks();renderSubjects();renderNotes();renderCalendar();renderAnalytics();renderChart("#homeChart");syncTimer();
+}
+function openModal(title,fields,values,onSave){
+  $("#modalTitle").textContent=title;
+  $("#modalBody").innerHTML=fields.map(f=>{
+    const val=values?.[f.name]??f.value??"";
+    if(f.type==="textarea")return `<label>${f.label}</label><textarea class="field" name="${f.name}" rows="5" ${f.required?"required":""}>${safe(val)}</textarea>`;
+    if(f.type==="select")return `<label>${f.label}</label><select class="field" name="${f.name}">${f.options.map(o=>`<option value="${safe(o.value)}" ${String(val)===String(o.value)?"selected":""}>${safe(o.label)}</option>`).join("")}</select>`;
+    return `<label>${f.label}</label><input class="field" name="${f.name}" type="${f.type||"text"}" value="${safe(val)}" ${f.required?"required":""} ${f.min!==undefined?'min="'+f.min+'"':""} ${f.max!==undefined?'max="'+f.max+'"':""}>`;
+  }).join("");
+  $("#modal").classList.add("open");saveAction=onSave;
+}
+function closeModal(){$("#modal").classList.remove("open");saveAction=null}
+$("#cancelModal").onclick=closeModal;
+$("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+$("#saveModal").onclick=()=>{
+  const form=$("#modalBody");
+  if(!form.querySelector(":invalid")){
+    const values={};form.querySelectorAll("[name]").forEach(el=>values[el.name]=el.value.trim());
+    if(saveAction)saveAction(values);closeModal();
+  }else form.querySelector(":invalid").focus();
+};
+function addTask(values={}){
+  openModal("New task",[
+    {name:"title",label:"Task name",required:true},
+    {name:"subject",label:"Subject",type:"select",options:[{value:"General",label:"General"},...data.subjects.map(s=>({value:s.name,label:s.name}))]},
+    {name:"due",label:"Due date",type:"date",required:true},
+    {name:"priority",label:"Priority",type:"select",options:["High","Medium","Low"].map(x=>({value:x,label:x}))}
+  ],{subject:"General",due:selectedDate||today(),priority:"Medium",...values},v=>{
+    if(!v.title)return toast("Enter a task name.");
+    data.tasks.push({id:id(),...v,done:false});persist();toast("Task added ✨");
+  });
+}
+function editTask(task){
+  openModal("Edit task",[
+    {name:"title",label:"Task name",required:true},
+    {name:"subject",label:"Subject",type:"select",options:[{value:"General",label:"General"},...data.subjects.map(s=>({value:s.name,label:s.name}))]},
+    {name:"due",label:"Due date",type:"date",required:true},
+    {name:"priority",label:"Priority",type:"select",options:["High","Medium","Low"].map(x=>({value:x,label:x}))}
+  ],task,v=>{Object.assign(task,v);persist();toast("Task updated")});
+}
+function addSubject(subject){
+  openModal(subject?"Edit subject":"Add subject",[
+    {name:"name",label:"Subject name",required:true},
+    {name:"icon",label:"Emoji or icon"},
+    {name:"progress",label:"Progress percentage",type:"number",min:0,max:100}
+  ],subject||{icon:"📚",progress:0},v=>{
+    if(!v.name)return toast("Enter a subject name.");
+    v.progress=Math.max(0,Math.min(100,Number(v.progress)||0));
+    if(subject)Object.assign(subject,v);
+    else data.subjects.push({id:id(),color:["#a092ff","#39dce9","#ff80c8","#ffc66d","#42dfb0"][data.subjects.length%5],...v,id:id()});
+    persist();toast("Subject saved");
+  });
+}
+function addNote(note){
+  openModal(note?"Edit note":"New note",[
+    {name:"title",label:"Title",required:true},
+    {name:"subject",label:"Subject",type:"select",options:[{value:"General",label:"General"},...data.subjects.map(s=>({value:s.name,label:s.name}))]},
+    {name:"body",label:"Note content",type:"textarea"}
+  ],note||{subject:"General",body:""},v=>{
+    if(!v.title)return toast("Add a note title.");
+    if(note)Object.assign(note,{...v,updated:today()});
+    else data.notes.unshift({id:id(),...v,updated:today()});
+    persist();toast("Note saved");
+  });
+}
+document.addEventListener("click",e=>{
+  const nav=e.target.closest("[data-view]");if(nav)go(nav.dataset.view);
+  const goto=e.target.closest("[data-go]");if(goto)go(goto.dataset.go);
+  const check=e.target.closest("[data-check]");
+  if(check){const t=data.tasks.find(x=>x.id===check.dataset.check);if(t){t.done=check.checked;persist();toast(t.done?"Task completed!":"Task reopened")}}
+  const edit=e.target.closest("[data-edit-task]");if(edit)editTask(data.tasks.find(t=>t.id===edit.dataset.editTask));
+  const date=e.target.closest("[data-date]");if(date){selectedDate=date.dataset.date;renderCalendar()}
+  const subEdit=e.target.closest("[data-edit-sub]");if(subEdit)addSubject(data.subjects.find(s=>s.id===subEdit.dataset.editSub));
+  const subDelete=e.target.closest("[data-delete-sub]");if(subDelete&&confirm("Delete this subject?")){data.subjects=data.subjects.filter(s=>s.id!==subDelete.dataset.deleteSub);persist()}
+  const progress=e.target.closest("[data-progress]");if(progress){const s=data.subjects.find(x=>x.id===progress.dataset.progress);openModal("Update progress",[{name:"progress",label:"Progress percentage",type:"number",min:0,max:100,required:true}],s,v=>{s.progress=Math.max(0,Math.min(100,Number(v.progress)||0));persist()})}
+  const noteEdit=e.target.closest("[data-edit-note]");if(noteEdit)addNote(data.notes.find(n=>n.id===noteEdit.dataset.editNote));
+  const noteDelete=e.target.closest("[data-delete-note]");if(noteDelete&&confirm("Delete this note?")){data.notes=data.notes.filter(n=>n.id!==noteDelete.dataset.deleteNote);persist()}
+});
+$("#quickAdd").onclick=$("#addTask").onclick=()=>addTask();
+$("#addSubject").onclick=()=>addSubject();
+$("#addNote").onclick=()=>addNote();
+$("#taskSearch").oninput=renderTasks;
+$("#taskFilter").onchange=renderTasks;
+$("#noteSearch").oninput=renderNotes;
+$("#calendarAdd").onclick=()=>addTask({due:selectedDate});
+$("#prevMonth").onclick=()=>{month.setMonth(month.getMonth()-1);renderCalendar()};
+$("#nextMonth").onclick=()=>{month.setMonth(month.getMonth()+1);renderCalendar()};
+$("#saveSettings").onclick=()=>{data.name=$("#userName").value.trim()||"Scholar";data.goal=Number($("#goal").value)||3;persist();toast("Settings saved")};
+$("#exportData").onclick=()=>{
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="studyspace-backup.json";a.click();URL.revokeObjectURL(a.href);
+};
+$("#importBtn").onclick=()=>$("#importFile").click();
+$("#importFile").onchange=async e=>{
+  try{
+    const imported=JSON.parse(await e.target.files[0].text());
+    if(!Array.isArray(imported.tasks)||!Array.isArray(imported.subjects)||!Array.isArray(imported.notes)||!Array.isArray(imported.sessions))throw Error();
+    data=imported;persist();toast("Backup imported");
+  }catch{toast("Invalid backup file")}
+  e.target.value="";
+};
+$("#resetData").onclick=()=>{
+  if(confirm("Delete all saved study data? This cannot be undone.")){
+    localStorage.removeItem(KEY);data=defaults();stopTimer();persist();toast("Data reset");
+  }
+};
+
+function syncTimer(){
+  const txt=`${String(Math.floor(remaining/60)).padStart(2,"0")}:${String(remaining%60).padStart(2,"0")}`;
+  $("#homeTimer").textContent=$("#bigTimer").textContent=txt;
+  $("#timerLabel").textContent=running?"IN SESSION":mode==="focus"?"READY TO FOCUS":"TAKE A BREAK";
+  const deg=(1-remaining/duration)*360;
+  const bg=`conic-gradient(var(--cyan) 0deg,var(--purple) ${deg}deg,#26334a ${deg}deg)`;
+  $("#homeRing").style.background=$("#bigRing").style.background=bg;
+  $("#homeStart").textContent=running?"Ⅱ Pause focus":"▶ Start focus";
+  $("#timerStart").textContent=running?"Ⅱ Pause":"▶ Start";
+}
+function stopTimer(){clearInterval(interval);interval=null;running=false}
+function setMode(min){
+  stopTimer();mode=min===25?"focus":"break";duration=min*60;remaining=duration;syncTimer();
+}
+function startTimer(){
+  if(running){stopTimer();syncTimer();return}
+  running=true;syncTimer();
+  interval=setInterval(()=>{
+    remaining=Math.max(0,remaining-1);syncTimer();
+    if(remaining===0){
+      stopTimer();
+      if(mode==="focus"){
+        data.sessions.push({id:id(),date:today(),seconds:duration,mode:"focus",completed:true});
+        persist();toast("Focus session complete! Great work 🎉");
+      }else toast("Break finished. Ready to focus?");
+      setMode(mode==="focus"?5:25);
+    }
+  },1000);
+}
+$("#homeStart").onclick=$("#timerStart").onclick=startTimer;
+$("#homeReset").onclick=$("#timerReset").onclick=()=>{stopTimer();remaining=duration;syncTimer()};
+$$(".mode").forEach(b=>b.onclick=()=>setMode(Number(b.dataset.min)));
+
+renderAll();
+})();
+</script>
+</body>
+</html>
